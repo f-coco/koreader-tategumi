@@ -178,6 +178,8 @@ function ReaderVertical:addToMainMenu(menu_items)
             }),
         },
     }
+    -- 注意：help_text 必须用循环外的 gettext `_`（for _, m 会遮蔽 _ 为 number）
+    local zhtw_help = _("文字与标点一起转换（简体 ↔ 繁体）。标点随文字变（“” ↔ 「」），不单独存在。")
     local zhtw_table = {}
     for _, m in ipairs(ZHTW_MODES) do
         table.insert(zhtw_table, {
@@ -189,7 +191,7 @@ function ReaderVertical:addToMainMenu(menu_items)
             callback = function()
                 self:onSetZhtwMode(m.key)
             end,
-            help_text = _("文字与标点一起转换（简体 ↔ 繁体）。标点随文字变（“” ↔ 「」），不单独存在。"),
+            help_text = zhtw_help,
         })
     end
     -- 统一放进"样式"菜单（readerstyletweak 先注册，style_tweaks 已存在）
