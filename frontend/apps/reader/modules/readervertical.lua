@@ -42,8 +42,10 @@ end
 function ReaderVertical:_apply()
     if self.ui.document and self.ui.document.setVertPunctMode then
         self.ui.document:setVertPunctMode(MODE_INT[self.vert_punct_mode] or 0)
-        self.ui.document:setIntProperty("vert.page.border", self.guji_page_border or 0)
-        self.ui.document:setIntProperty("vert.column.rule", self.guji_column_rule or 0)
+        if self.ui.document.setVertPageBorder then
+            self.ui.document:setVertPageBorder(self.guji_page_border or 0)
+            self.ui.document:setVertColumnRule(self.guji_column_rule or 0)
+        end
     end
 end
 

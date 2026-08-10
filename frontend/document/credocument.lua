@@ -1328,6 +1328,16 @@ function CreDocument:setVertPunctMode(mode)
     self._document:setIntProperty("vert.punct.mode", mode)
 end
 
+function CreDocument:setVertColumnRule(width)
+    logger.dbg("CreDocument: set vertical column rule", width)
+    self._document:setIntProperty("vert.column.rule", width)
+end
+
+function CreDocument:setVertPageBorder(width)
+    logger.dbg("CreDocument: set vertical page border", width)
+    self._document:setIntProperty("vert.page.border", width)
+end
+
 function CreDocument:setWordSpacing(values)
     -- values should be a table of 2 numbers (e.g.: { 90, 75 })
     -- - space width scale percent (hard scale the width of each space char in
