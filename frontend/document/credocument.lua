@@ -1348,6 +1348,11 @@ function CreDocument:setVertGujiAuxScale(scale)
     self._document:setIntProperty("vert.guji.aux.scale", scale)
 end
 
+function CreDocument:setVertZhtwMode(mode)
+    logger.dbg("CreDocument: set vertical zhtw mode", mode)
+    self._document:setIntProperty("vert.zhtw.mode", mode)
+end
+
 function CreDocument:setWordSpacing(values)
     -- values should be a table of 2 numbers (e.g.: { 90, 75 })
     -- - space width scale percent (hard scale the width of each space char in

@@ -32,6 +32,7 @@ function ReaderVertical:onReadSettings(config)
     self.guji_column_rule = config:readSetting("vert.column.rule") or 0
     self.guji_gap = config:readSetting("vert.guji.gap") or 10
     self.guji_aux_scale = config:readSetting("vert.guji.aux.scale") or 65
+    self.vert_zhtw_mode = config:readSetting("vert.zhtw.mode") or 0
     self:_apply()
 end
 
@@ -41,6 +42,7 @@ function ReaderVertical:onSaveSettings()
     self.ui.doc_settings:saveSetting("vert.column.rule", self.guji_column_rule or 0)
     self.ui.doc_settings:saveSetting("vert.guji.gap", self.guji_gap or 10)
     self.ui.doc_settings:saveSetting("vert.guji.aux.scale", self.guji_aux_scale or 65)
+    self.ui.doc_settings:saveSetting("vert.zhtw.mode", self.vert_zhtw_mode or 0)
 end
 
 function ReaderVertical:_apply()
@@ -51,6 +53,7 @@ function ReaderVertical:_apply()
             self.ui.document:setVertColumnRule(self.guji_column_rule or 0)
             self.ui.document:setVertGujiGap(self.guji_gap or 10)
             self.ui.document:setVertGujiAuxScale(self.guji_aux_scale or 65)
+            self.ui.document:setVertZhtwMode(self.vert_zhtw_mode or 0)
         end
     end
 end
@@ -68,6 +71,13 @@ local GUJI_WIDTHS = {
     { 0, _("关") }, { 1, _("细") }, { 2, _("中") }, { 3, _("粗") },
 }
 
+-- 简繁转换：0=关, 1=简→繁, 2=繁→简（文字+标点一起，标点不单独存在）
+local ZHTW_MODES = {
+    { key = 0, text = _("关") },
+    { key = 1, text = _("简 → 繁") },
+    { key = 2, text = _("繁 → 简") },
+}
+
 local GUJI_PROP = {
     guji_page_border = "vert.page.border",
     guji_column_rule = "vert.column.rule",
@@ -81,6 +91,15 @@ function ReaderVertical:onSetGuji(setting, value)
     self.ui.doc_settings:saveSetting(GUJI_PROP[setting], value)
     self.ui:handleEvent(Event:new("UpdatePos"))
     logger.dbg("ReaderVertical: guji", setting, "set to", value)
+    return true
+end
+
+function ReaderVertical:onSetZhtwMode(mode)
+    self.vert_zhtw_mode = mode
+    self:_apply()
+    self.ui.doc_settings:saveSetting("vert.zhtw.mode", mode)
+    self.ui:handleEvent(Event:new("UpdatePos"))
+    logger.dbg("ReaderVertical: zhtw mode set to", mode)
     return true
 end
 
@@ -159,19 +178,50 @@ function ReaderVertical:addToMainMenu(menu_items)
             }),
         },
     }
-    menu_items.vertical_text = {
-        text = _("Vertical text"),
-        sub_item_table = {
-            {
-                text = _("Punctuation mode"),
-                sub_item_table = punct_mode_table,
+    local zhtw_table = {}
+    for _, m in ipairs(ZHTW_MODES) do
+        table.insert(zhtw_table, {
+            text = m.text,
+            radio = true,
+            checked_func = function()
+                return (self.vert_zhtw_mode or 0) == m.key
+            end,
+            callback = function()
+                self:onSetZhtwMode(m.key)
+            end,
+            help_text = _("文字与标点一起转换（简体 ↔ 繁体）。标点随文字变（“” ↔ 「」），不单独存在。"),
+        })
+    end
+    -- 统一放进"样式"菜单（readerstyletweak 先注册，style_tweaks 已存在）
+    if menu_items.style_tweaks and menu_items.style_tweaks.sub_item_table then
+        table.insert(menu_items.style_tweaks.sub_item_table, {
+            text = _("竖排设置"),
+            sub_item_table = {
+                {
+                    text = _("标点模式"),
+                    sub_item_table = punct_mode_table,
+                },
+                {
+                    text = _("古籍模式"),
+                    sub_item_table = guji_table,
+                },
+                {
+                    text = _("简繁转换"),
+                    sub_item_table = zhtw_table,
+                },
             },
-            {
-                text = _("古籍模式"),
-                sub_item_table = guji_table,
+        })
+    else
+        -- 兜底：style_tweaks 不存在时退回主菜单项
+        menu_items.vertical_text = {
+            text = _("竖排设置"),
+            sub_item_table = {
+                { text = _("标点模式"), sub_item_table = punct_mode_table },
+                { text = _("古籍模式"), sub_item_table = guji_table },
+                { text = _("简繁转换"), sub_item_table = zhtw_table },
             },
-        },
-    }
+        }
+    end
 end
 
 return ReaderVertical
