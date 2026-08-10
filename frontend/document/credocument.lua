@@ -1338,6 +1338,16 @@ function CreDocument:setVertPageBorder(width)
     self._document:setIntProperty("vert.page.border", width)
 end
 
+function CreDocument:setVertGujiGap(gap)
+    logger.dbg("CreDocument: set guji gap", gap)
+    self._document:setIntProperty("vert.guji.gap", gap)
+end
+
+function CreDocument:setVertGujiAuxScale(scale)
+    logger.dbg("CreDocument: set guji aux scale", scale)
+    self._document:setIntProperty("vert.guji.aux.scale", scale)
+end
+
 function CreDocument:setWordSpacing(values)
     -- values should be a table of 2 numbers (e.g.: { 90, 75 })
     -- - space width scale percent (hard scale the width of each space char in
