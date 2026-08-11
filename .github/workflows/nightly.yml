@@ -17,6 +17,10 @@ on:
         description: Build PocketBook
         type: boolean
         default: false
+      build_cervantes:
+        description: Build Cervantes (Story HD port)
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}
@@ -139,6 +143,39 @@ jobs:
           path: |
             koreader-pocketbook-latest-nightly.zip
             koreader-pocketbook-latest-nightly.targz
+            koreader-*.tar.xz
+
+  cervantes:
+    name: Cervantes (Story HD)
+    needs: check-changes
+    if: "needs.check-changes.outputs.should_build == 'true' && (github.event_name != 'workflow_dispatch' || github.event.inputs.build_cervantes == 'true')"
+    runs-on: ubuntu-latest
+    container:
+      image: koreader/kobase:latest
+    env:
+      BASH_ENV: /home/ko/.bashrc
+      TARGET: cervantes
+      RELEASE_TAG: ${{ needs.check-changes.outputs.nightly_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch submodules
+        run: make fetchthirdparty
+      - name: Build
+        run: make TARGET=cervantes
+      - name: Package
+        run: make TARGET=cervantes update
+      - name: Rename for nightly
+        run: |
+          cp koreader-cervantes-*.zip koreader-cervantes-latest-nightly.zip || true
+          cp koreader-cervantes-*.targz koreader-cervantes-latest-nightly.targz || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cervantes
+          path: |
+            koreader-cervantes-latest-nightly.zip
+            koreader-cervantes-latest-nightly.targz
             koreader-*.tar.xz
 
   android-arm:
