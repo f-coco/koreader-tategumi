@@ -163,10 +163,15 @@ jobs:
       - name: Install cross toolchain (koxtoolchain)
         run: |
           apt-get update
-          apt-get install -y zstd wget
+          apt-get install -y zstd curl
           mkdir -p /opt/x-tools
-          wget -q -O /tmp/cervantes.tar.zst https://github.com/koreader/koxtoolchain/releases/download/2026.08/cervantes.tar.zst
-          tar --zstd -xf /tmp/cervantes.tar.zst -C /opt/x-tools
+          curl -fsSL --retry 3 -o /tmp/cervantes.tar.zst \
+            https://github.com/koreader/koxtoolchain/releases/download/2026.08/cervantes.tar.zst
+          ls -la /tmp/cervantes.tar.zst
+          file /tmp/cervantes.tar.zst || true
+          # 显式 zstd 解压成 tar（不依赖 tar --zstd），再解包
+          zstd -d -f /tmp/cervantes.tar.zst -o /tmp/cervantes.tar
+          tar -xf /tmp/cervantes.tar -C /opt/x-tools
           ls -la /opt/x-tools
       - name: Fetch submodules
         run: make fetchthirdparty
