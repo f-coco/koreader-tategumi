@@ -160,16 +160,24 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install cross toolchain
+      - name: Install cross toolchain (koxtoolchain)
         run: |
           apt-get update
-          apt-get install -y gcc-arm-linux-gnueabi g++-arm-linux-gnueabi libc6-dev-armel-cross
+          apt-get install -y zstd wget
+          mkdir -p /opt/x-tools
+          wget -q -O /tmp/cervantes.tar.zst https://github.com/koreader/koxtoolchain/releases/download/2026.08/cervantes.tar.zst
+          tar --zstd -xf /tmp/cervantes.tar.zst -C /opt/x-tools
+          ls -la /opt/x-tools
       - name: Fetch submodules
         run: make fetchthirdparty
       - name: Build
-        run: make TARGET=cervantes
+        run: |
+          export PATH=/opt/x-tools/arm-cervantes-linux-gnueabi/bin:$PATH
+          make TARGET=cervantes
       - name: Package
-        run: make TARGET=cervantes update
+        run: |
+          export PATH=/opt/x-tools/arm-cervantes-linux-gnueabi/bin:$PATH
+          make TARGET=cervantes update
       - name: Rename for nightly
         run: |
           cp koreader-cervantes-*.zip koreader-cervantes-latest-nightly.zip || true
