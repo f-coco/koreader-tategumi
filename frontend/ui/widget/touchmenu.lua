@@ -808,6 +808,27 @@ function TouchMenu:onPrevPage()
     return self:onGotoPage(self.page - 1)
 end
 
+-- Keyboard pagination for devices without PgFwd/PgBack keys (e.g. Story HD):
+-- with DPad navigation, pressing Down at the last item of the current page
+-- turns to the next page, and Up at the first item returns to the previous one.
+function TouchMenu:onFocusMove(args)
+    local dy = args and args[2] or 0
+    if dy > 0 and self.selected and self.selected.y then
+        -- Down at the bottom edge of the current page -> next page
+        if not self.layout[self.selected.y + 1] and self.page < self.page_num then
+            self:onNextPage()
+            return true
+        end
+    elseif dy < 0 and self.selected and self.selected.y then
+        -- Up at the top (tab bar or first item) of the current page -> previous page
+        if self.selected.y <= 2 and self.page > 1 then
+            self:onPrevPage()
+            return true
+        end
+    end
+    return FocusManager.onFocusMove(self, args)
+end
+
 function TouchMenu:onFirstPage()
     return self:onGotoPage(1)
 end

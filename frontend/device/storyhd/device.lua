@@ -46,10 +46,10 @@ function StoryHD:init()
     self.input = require("device/input"):new{
         device = self,
         event_map = {
-            [37] = "PgBack",        -- 小键盘← = 上一页
-            [38] = "PgBack",        -- 小键盘↑ = 上一页
-            [39] = "PgFwd",         -- 小键盘→ = 下一页
-            [40] = "PgFwd",         -- 小键盘↓ = 下一页
+            [37] = "Left",          -- 小键盘←
+            [38] = "Up",            -- 小键盘↑ = 光标上 / 阅读器滚动
+            [39] = "Right",         -- 小键盘→
+            [40] = "Down",          -- 小键盘↓ = 光标下 / 阅读器滚动
             [87] = "Up",            -- W = 光标上
             [83] = "Down",          -- S = 光标下
             [65] = "Left",          -- A = 光标左
@@ -74,6 +74,26 @@ function StoryHD:init()
     self.input:open("/dev/input/event0") -- mxckpd keyboard
     self.input:open("fake_events")       -- usb plug/unplug & charging
     Generic.init(self)
+end
+
+function StoryHD:exit()
+    -- Clear the EPD to white before handing control back to flow, so flow's
+    -- (partial) repaint isn't polluted by KOReader's last frame. Otherwise the
+    -- screen can look frozen/unresponsive after choosing Exit.
+    pcall(function()
+        local Blitbuffer = require("ffi/blitbuffer")
+        local screen = self.screen
+        if screen then
+            local bb = screen.full_bb or screen.bb
+            if bb then
+                bb:fill(Blitbuffer.COLOR_WHITE)
+                screen:refreshFull(0, 0, screen:getWidth(), screen:getHeight())
+                -- Let the EPD settle before flow takes over the framebuffer
+                os.execute("sleep 1")
+            end
+        end
+    end)
+    Generic.exit(self)
 end
 
 

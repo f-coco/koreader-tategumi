@@ -37,6 +37,12 @@ local function probeDevice()
         return require("device/cervantes/device")
     end
 
+    -- iRiver Story HD: iriver-specific procfs (dccfs) is a reliable marker.
+    local storyhd_test_stat = lfs.attributes("/proc/dccfs")
+    if storyhd_test_stat then
+        return require("device/storyhd/device")
+    end
+
     -- add new ports here:
     --
     -- if --[[ implement a proper test instead --]] false then
