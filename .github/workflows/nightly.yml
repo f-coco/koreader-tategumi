@@ -17,6 +17,10 @@ on:
         description: Build PocketBook
         type: boolean
         default: false
+      build_cervantes:
+        description: Build Cervantes (Story HD)
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}
