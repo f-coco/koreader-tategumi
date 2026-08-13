@@ -172,12 +172,16 @@ jobs:
           file /tmp/cervantes.tar.zst || true
           # 显式 zstd 解压成 tar（不依赖 tar --zstd），再解包
           zstd -d -f /tmp/cervantes.tar.zst -o /tmp/cervantes.tar
-          tar -xf /tmp/cervantes.tar -C /opt/x-tools
+          # koxtoolchain 包顶层是 x-tools/，strip 掉避免在 /opt/x-tools 下多套一层
+          tar -xf /tmp/cervantes.tar -C /opt/x-tools --strip-components=1
           ls -la /opt/x-tools
+          ls -la /opt/x-tools/arm-cervantes-linux-gnueabi/bin || true
       - name: Fix git safe.directory (root container)
         run: git config --global --add safe.directory '*'
       - name: Fetch submodules
-        run: make fetchthirdparty
+        run: |
+          export PATH=/opt/x-tools/arm-cervantes-linux-gnueabi/bin:$PATH
+          make fetchthirdparty
       - name: Build
         run: |
           export PATH=/opt/x-tools/arm-cervantes-linux-gnueabi/bin:$PATH
